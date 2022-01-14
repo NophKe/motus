@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 from random import randrange
-from termios import tcgetattr, tcsetattr, TCSAFLUSH
 from pathlib import Path
-from tty import CC, VMIN, VTIME, setraw
 from sys import stdin
 from string import ascii_letters
+from tty import CC, VMIN, VTIME, setraw
+from termios import tcgetattr, tcsetattr, TCSAFLUSH
 
 ########    terminal manipulation     #################################
 
@@ -31,56 +31,7 @@ def get_a_key():
 	tcsetattr(stdin, TCSAFLUSH, mode)
 	return rv
 
-def mot_au_hasard(nombre_de_lettres):
-    table = Path(get_file(nombre_de_lettres)).read_text().splitlines()
-    return table[randrange(len(table))]
-
-def proposition() :
-    user_input = [] 
-    while len(user_input) != len(mot_a_deviner):
-        pending = get_a_key()
-        '''if pending =='\x1b[55' :
-            break'''
-        if pending not in ascii_letters :
-            continue
-        else :
-            user_input.append(pending.upper())
-            print("\r" + ''.join(user_input), end='')
-    print('')	
-    return user_input
-
-
-
-while True :
-	mot_a_deviner = ['J', 'O', 'U', 'E', 'E']
-###------------------------------------------ proposition -------------------------------------------###
-
-	length = len(mot_a_deviner)
-	print('veuillez proposer un mot de ' + str(length) + ' lettres :')
-	
-	proposition = proposition()
-	
-###----------------------------- analyse de la proposition et resultat ------------------------------###
-
-	mauvaises_lettres = [char for char in proposition]
-	for char in mot_a_deviner :
-		if char in mauvaises_lettres :
-			mauvaises_lettres.remove(char)
-	
-	final = list()
-	for i, char in enumerate(proposition) :
-		if char == mot_a_deviner[i] :
-			final.append('\x1b[32;1m' + char + '\x1b[0m')
-		elif char in mauvaises_lettres :
-			final.append('_')
-		else :
-			final.append('\x1b[31;1m' + char + '\x1b[0m')
-	print(''.join(final))
-
-
-difficulté_maximum = 7 #il y a un accent dans le nom de cette variable :-)
-
-
+########    word manipulation     ####################################
 
 def get_lenght(mot):
     """ Cette fonction retourne une longueur une mot «normalisée»:
@@ -98,6 +49,45 @@ def get_lenght(mot):
         if char in caracteres_speciaux :
             counter_caracteres_speciaux = counter_caracteres_speciaux + 1
     return counter_ascii_letters + counter_caracteres_speciaux
+
+def mot_au_hasard(nombre_de_lettres):
+    table = Path(get_file(nombre_de_lettres)).read_text().splitlines()
+    return table[randrange(len(table))]
+
+########    game loop     ############################################
+
+def play():
+    difficulté = 2 
+    while True:
+#TODO Factorise la variable du IF suivant.
+        if devine(nombre_de_chances, difficulté):
+            if difficulté < difficulté_maximum:
+                difficulté = difficulté + 1
+                print("Vous entrez dans le niveau " + str(difficulté))
+            else:
+                print("Vous êtes au niveau maximum, Bravo !")
+#TODO remplacer dans la fonction devine
+        else:
+            print('\n' * 30 + '-' * 30 + '\nPERDU\n' + '-' * 30)
+            input('Press [ENTER]')
+
+def proposition() :
+    user_input = [] 
+    while len(user_input) != len(mot_a_deviner):
+        pending = get_a_key()
+        '''if pending =='\x1b[55' :
+            break'''
+        if pending not in ascii_letters :
+            continue
+        else :
+            user_input.append(pending.upper())
+            print("\r" + ''.join(user_input), end='')
+    print('')	
+    return user_input
+
+
+difficulté_maximum = 7 #il y a un accent dans le nom de cette variable :-)
+
 
 # Je suis obligé de rajouter cette partie pas jolie sinon je peux pas
 # démarrer le bouzin. je crée donc cette variable chemin, en gros si le
@@ -170,20 +160,6 @@ def devine(nb_chances, level):
                 return True
 
 
-def play():
-    difficulté = 2 
-    while True:
-#TODO Factorise la variable du IF suivant.
-        if devine(nombre_de_chances, difficulté):
-            if difficulté < difficulté_maximum:
-                difficulté = difficulté + 1
-                print("Vous entrez dans le niveau " + str(difficulté))
-            else:
-                print("Vous êtes au niveau maximum, Bravo !")
-#TODO remplacer dans la fonction devine
-        else:
-            print('\n' * 30 + '-' * 30 + '\nPERDU\n' + '-' * 30)
-            input('Press [ENTER]')
 
 #TODO use get_terminal_size()
 # Vu que tout est encapsulé dans des fonction notre programme devient 
@@ -196,3 +172,25 @@ if __name__ == '__main__':
     nombre_de_chances = int(input('choisir un nombre de chances: '))
     play()
 
+    mot_a_deviner = ['J', 'O', 'U', 'E', 'E']
+
+    while True :
+
+        length = len(mot_a_deviner)
+        print('veuillez proposer un mot de ' + str(length) + ' lettres :')
+        proposition = proposition()
+        
+        mauvaises_lettres = [char for char in proposition]
+        for char in mot_a_deviner :
+            if char in mauvaises_lettres :
+                mauvaises_lettres.remove(char)
+        
+        final = list()
+        for i, char in enumerate(proposition) :
+            if char == mot_a_deviner[i] :
+                final.append('\x1b[32;1m' + char + '\x1b[0m')
+            elif char in mauvaises_lettres :
+                final.append('_')
+            else :
+                final.append('\x1b[31;1m' + char + '\x1b[0m')
+        print(''.join(final))
