@@ -85,26 +85,11 @@ def proposition() :
     print('')	
     return user_input
 
-
+########    dictionnary infrastructure     ###########################
+# TODO delete next 2 gllobal variables
 difficulté_maximum = 7 #il y a un accent dans le nom de cette variable :-)
+chemin = ""
 
-
-# Je suis obligé de rajouter cette partie pas jolie sinon je peux pas
-# démarrer le bouzin. je crée donc cette variable chemin, en gros si le
-# fichier "nono_hack" éxiste dans le repertoire courant, alors le prog
-# s'éxécute dans le repertoire courant.
-# Si ce fichier n'éxiste pas, çà utilise le chemin /home/cd187.....
-# le truc c'est que tu as mis ce chemin dans ton prog, c'est une variable
-# magique et maintenant je dois faire de la magie noire pour m'en dépatouiller !
-if not Path("nono_hack").exists():
-    chemin = "/home/cd187/Bureau/programmes/jeux/classification pour motus/"
-else:
-    chemin = ""
-# Et je peux même pas *encapsuler* cette partie dans une fonction, car la
-# variable serait visible uniquement à lintérieur de cette fonction. On dit que "chemin"
-# est une variable *globale* çàd que toutes les fonctions peuvent la voir.
-# Mais aussi la modifier du coup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# #regles_de_sécurité_en_programmation#
 def get_file(numero):
     return chemin + "mots_de_" + str(numero) + "_lettres.txt"
 
