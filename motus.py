@@ -4,32 +4,51 @@ from random import randrange
 from pathlib import Path
 from sys import stdin
 from string import ascii_letters
-from tty import CC, VMIN, VTIME, setraw
+from time import time, sleep
 from termios import tcgetattr, tcsetattr, TCSAFLUSH
 
-########    terminal manipulation     #################################
+class save_stdin_state:
+    def __enter__(self):
+        self.mode = tcgetattr(stdin)
+    def __exit__(self, *args):
+        tcsetattr(stdin, TCSAFLUSH, self.mode)
 
-def setnonblocking(fd, when=TCSAFLUSH):
-	mode = tcgetattr(fd)
-	mode[CC][VMIN] = 0
-	mode[CC][VTIME] = 0
-	tcsetattr(fd, when, mode)
+def visit_stdin(vtime=0):
+    old_mode = tcgetattr(stdin)
 
-def get_a_key():
-	"""This function reads an only one key from the keyboard and returns it.
-	if this key is the <ESCAPE> key however, it checks if there are things
-	left to read in the stdin buffer. This way we read one char at a time,
-	but we steal collapse escape sequences."""
-	mode = tcgetattr(stdin)
-	setraw(stdin)
-	rv = stdin.read(1)
-	if rv == '\x1b':
-		setnonblocking(stdin)
-		esc_seq = stdin.read()
-		if esc_seq:
-			rv += esc_seq
-	tcsetattr(stdin, TCSAFLUSH, mode)
-	return rv
+    mode = old_mode[:]
+    mode[IFLAG] = mode[IFLAG] & ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
+    mode[OFLAG] = mode[OFLAG] & ~(OPOST)
+    mode[CFLAG] = mode[CFLAG] & ~(CSIZE | PARENB)
+    mode[CFLAG] = mode[CFLAG] | CS8
+    mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON | IEXTEN | ISIG)
+    mode[LFLAG] = mode[LFLAG] & ECHO
+    mode[CC][VMIN] = 0
+    mode[CC][VTIME] = 1
+    tcsetattr(stdin, TCSAFLUSH, mode)
+    
+    esc_mode = mode[:]
+    esc_mode[CC][VTIME] = 0
+
+    while True:
+        ret = stdin.read(1)
+        if ret == '\x1b':
+            tcsetattr(stdin, TCSAFLUSH, esc_mode)
+            esc_seq = stdin.read()
+            if esc_seq:
+                ret += esc_seq
+            tcsetattr(stdin, TCSAFLUSH, mode)
+        yield ret
+
+def timeout_input(max_time):
+    start_time = time()
+    USER_INPUT = ''
+    with save_stdin_state():
+        for char in visit_stdin():
+            if char:
+                USER_INPUT += char
+            if time() - start_time > max_time or len(USER_INPUT) > 7:
+                return USER_INPUT
 
 ########    word manipulation     ####################################
 
@@ -126,7 +145,7 @@ def initialize():
             break
     print('\n' * 300) #devrait être assez pour vider l'écran
     print('##### M O T U S #####')
-    print('                by Nophké & XXXXXX')
+    print('                by Nophké & CD187')
     print()
     print(',---------------------,')
     print('|Ctrl + C pour quitter|')
