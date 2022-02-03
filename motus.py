@@ -31,7 +31,7 @@ def visit_stdin(vtime=0):
     mode[CFLAG] = mode[CFLAG] & ~(CSIZE | PARENB)
     mode[CFLAG] = mode[CFLAG] | CS8
     mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON | IEXTEN | ISIG)
-    mode[LFLAG] = mode[LFLAG] & ECHO
+    mode[LFLAG] = mode[LFLAG] | ECHO
     mode[CC][VMIN] = 0
     mode[CC][VTIME] = 1
     tcsetattr(stdin, TCSAFLUSH, mode)
