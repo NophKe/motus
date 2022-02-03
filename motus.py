@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     nombre_de_chances = int(input('choisir un nombre de chances: '))
 
-    timeout = 6 
+    timeout = 12
     print(f'{timeout =} secondes',end='\r')
 
     difficulté = DIFFICULTÉ_MINIMUM 
