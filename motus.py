@@ -140,13 +140,11 @@ def devine(max_len):
 def etudie_proposition(proposition, mot_a_deviner):
 	final = list()
 	user_input = proposition				
-	
 	def counter(word) :                         
 		result = defaultdict(int)				
 		for char in word :						
 			result[char] += 1					  
 		return result							
-	
 	dico_proposition = counter(proposition)			
 	dico_mot_a_deviner = counter(mot_a_deviner) 
 	extra_letters =[]
@@ -155,8 +153,7 @@ def etudie_proposition(proposition, mot_a_deviner):
 			a = v - dico_mot_a_deviner.get(k)
 			while a > 0 :
 				extra_letters.append(k)
-				a -= 1
-				
+				a -= 1		
 	tuple_list = []
 	user_input2 = []
 	mot_a_deviner2 = []
@@ -189,16 +186,16 @@ def etudie_proposition(proposition, mot_a_deviner):
 			to_analyze.remove(char)	
 		elif char in deleted_extra_letters :
 			tuple_list.append(tuple((i, ('not in', char))))
-	ordinated_tuple_list = []
+	ordonated_tuple_list = []
 	counter = 0
 	while counter <= len(tuple_list) :
 		for element in tuple_list :
 			index = element[0]
 			information = element[1]
 			if counter == index :
-				ordinated_tuple_list.append(information)
+				ordonated_tuple_list.append(information)
 		counter += 1
-	for element in ordinated_tuple_list :
+	for element in ordonated_tuple_list :
 		state = element[0]
 		char = element[1]
 		if state == 'is good' :
@@ -212,7 +209,7 @@ def etudie_proposition(proposition, mot_a_deviner):
 
 def devine_un_mot(max_len, max_time, mot_a_deviner): 
 	for chances in range(max_len):
-		proposition	 = timeout_input(max_time, max_len)
+		proposition = timeout_input(max_time, max_len)
 		print("\r",'RESULTAT   : ' + etudie_proposition(proposition, mot_a_deviner))
 		if ''.join(proposition) == ''.join(mot_a_deviner) :
 			return True
