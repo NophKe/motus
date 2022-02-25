@@ -136,75 +136,48 @@ def devine(max_len):
 	a = dico.get(max_len)
 	return a[randrange(len(a))]
 	
-
+	
 def etudie_proposition(proposition, mot_a_deviner):
 	final = list()
-	user_input = proposition				
-	def counter(word) :                         
-		result = defaultdict(int)				
-		for char in word :						
-			result[char] += 1					  
-		return result							
-	dico_proposition = counter(proposition)			
-	dico_mot_a_deviner = counter(mot_a_deviner) 
-	extra_letters =[]
-	for k , v in dico_proposition.items() :
-		if k in dico_mot_a_deviner :
-			a = v - dico_mot_a_deviner.get(k)
-			while a > 0 :
-				extra_letters.append(k)
-				a -= 1		
-	tuple_list = []
-	user_input2 = []
-	mot_a_deviner2 = []
-	for i, char in enumerate(user_input) :
-		if char ==  mot_a_deviner[i]:
-			tuple_list.append(tuple((i, ('is good', char))))
-			user_input2.append(0)
-			mot_a_deviner2.append(0)
-		elif char not in mot_a_deviner :
-			tuple_list.append(tuple((i, ('not in', char))))
-			user_input2.append(0)
-			mot_a_deviner2.append(mot_a_deviner[i])
-		else :	
-			user_input2.append(char)
-			mot_a_deviner2.append(mot_a_deviner[i])
-	deleted_extra_letters =[]
-	to_analyze = []
-	for i, char in enumerate(user_input2) :
-		if char != 0 :
-			if char not in extra_letters and char not in deleted_extra_letters :
-				tuple_list.append(tuple((i, ('wrong place', char))))
-			elif char in extra_letters :
-				extra_letters.remove(char)
-				deleted_extra_letters.append(char)
-			elif char not in extra_letters and char in deleted_extra_letters :
-				to_analyze.append(char)
-	for i, char in enumerate(user_input2) :
-		if char in to_analyze :
-			tuple_list.append(tuple((i, ('wrong place', char))))
-			to_analyze.remove(char)	
-		elif char in deleted_extra_letters :
-			tuple_list.append(tuple((i, ('not in', char))))
-	ordonated_tuple_list = []
-	counter = 0
-	while counter <= len(tuple_list) :
-		for element in tuple_list :
-			index = element[0]
-			information = element[1]
-			if counter == index :
-				ordonated_tuple_list.append(information)
-		counter += 1
-	for element in ordonated_tuple_list :
-		state = element[0]
-		char = element[1]
-		if state == 'is good' :
+	user_input = proposition	                        
+	counter_word_to_guess = defaultdict(int)				
+	for char in mot_a_deviner :						
+		counter_word_to_guess[char] += 1					  
+						
+	def transform_word_into_a_dictionnary(word) :
+		word_dict = defaultdict(int)
+		for i, char in enumerate(word) :
+			word_dict[i] = char
+		return word_dict	
+
+	dict_word_to_guess = transform_word_into_a_dictionnary(mot_a_deviner)
+	dict_input_word = transform_word_into_a_dictionnary(user_input)
+	dict_output_word = defaultdict(list)
+	for index in dict_word_to_guess :
+		dict_output_word[index]	= 'to define'
+			
+	for index, char in dict_input_word.items() :
+		if char == dict_word_to_guess.get(index) :
+			dict_output_word[index] = (char, 'right place')
+			counter_word_to_guess[char] -= 1
+	for index, char in dict_input_word.items() :
+		if counter_word_to_guess[char] > 0 and char != dict_word_to_guess.get(index) :
+			dict_output_word[index] = (char, 'wrong place')
+			counter_word_to_guess[char] -= 1
+		elif counter_word_to_guess[char] <= 0 and char != dict_word_to_guess.get(index) :
+			dict_output_word[index] = (char, 'not included')		
+	
+	for element in dict_output_word.values() :
+		char = element[0]
+		state = element[1]
+		if state == 'right place' :
 			final.append('\x1b[32;1m' + char + '\x1b[0m')
 		elif state == 'wrong place' :
 			final.append('\x1b[31;1m' + char + '\x1b[0m')
-		elif state == 'not in' :
+		elif state == 'not included' :
 			final.append('_')
-	return ''.join(final)
+		
+	return(final)	
 
 
 def devine_un_mot(max_len, max_time, mot_a_deviner): 
