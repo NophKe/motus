@@ -35,7 +35,7 @@ def visit_stdin(vtime=0):
     mode[CFLAG] = mode[CFLAG] | CS8
     mode[LFLAG] = mode[LFLAG] & ~(ECHO | ICANON | IEXTEN | ISIG)
     mode[CC][VMIN] = 0
-    mode[CC][VTIME] = 1
+    mode[CC][VTIME] = 5
     tcsetattr(stdin, TCSAFLUSH, mode)
     
     esc_mode = mode[:]
@@ -72,13 +72,13 @@ def choix_mode() :
 |                                                                                                    |
 |       E => entraînement :   Partie en une seule manche.                                            |
 |                             Vous choisissez la difficulté.                                         |
-|                             Vous choisissez le nombre de lettres à deviner.                        |
-|                             Vous disposez d'autant d'essais par manche que de lettres dans le mot. |
+|                             Vous choisissez le nombre de lettre à deviner                          |
+|                             Vous disposez d'autant d'essai par manche que de lettres dans le mot.  |
 |                                                    	                                             |
 |       C => challenge :      Partie en six manches.                                                 |
 |                             Vous choisissez la difficulté.                                         |
 |                             Le premier mot à deviner sera composé de 5 lettres.                    |
-|                             Vous disposez d'autant d'essais par manche que de lettres dans le mot. |
+|                             Vous disposez d'autant d'essai par manche que de lettres dans le mot.  |
 |                             A chaque manche gagnée, le mot suivant aura une lettre de plus.        |
 |                             Si vous trouvez le mot de 10 lettres, vous avez gagné le challenge.    |
 |                                                    	                                             |
@@ -136,36 +136,29 @@ def devine(max_len):
 	a = dico.get(max_len)
 	return a[randrange(len(a))]
 	
-	
+
 def etudie_proposition(proposition, mot_a_deviner):
 	final = list()
-	user_input = proposition	                        
+	user_input = proposition
+		                        
 	counter_word_to_guess = defaultdict(int)				
 	for char in mot_a_deviner :						
 		counter_word_to_guess[char] += 1					  
 						
-	def transform_word_into_a_dictionnary(word) :
-		word_dict = defaultdict(int)
-		for i, char in enumerate(word) :
-			word_dict[i] = char
-		return word_dict	
-
-	dict_word_to_guess = transform_word_into_a_dictionnary(mot_a_deviner)
-	dict_input_word = transform_word_into_a_dictionnary(user_input)
 	dict_output_word = defaultdict(list)
-	for index in dict_word_to_guess :
-		dict_output_word[index]	= 'to define'
+	for i, char in enumerate(user_input) :
+		dict_output_word[i]	= 'to define'
 			
-	for index, char in dict_input_word.items() :
-		if char == dict_word_to_guess.get(index) :
-			dict_output_word[index] = (char, 'right place')
+	for i, char in enumerate(user_input) :
+		if char == mot_a_deviner[i] :
+			dict_output_word[i] = (char, 'right place')
 			counter_word_to_guess[char] -= 1
-	for index, char in dict_input_word.items() :
-		if counter_word_to_guess[char] > 0 and char != dict_word_to_guess.get(index) :
-			dict_output_word[index] = (char, 'wrong place')
+	for i, char in enumerate(user_input) :
+		if counter_word_to_guess[char] > 0 and char != mot_a_deviner[i]  :
+			dict_output_word[i] = (char, 'wrong place')
 			counter_word_to_guess[char] -= 1
-		elif counter_word_to_guess[char] <= 0 and char != dict_word_to_guess.get(index) :
-			dict_output_word[index] = (char, 'not included')		
+		elif counter_word_to_guess[char] <= 0 and char != mot_a_deviner[i] :
+			dict_output_word[i] = (char, 'not included')		
 	
 	for element in dict_output_word.values() :
 		char = element[0]
@@ -176,13 +169,13 @@ def etudie_proposition(proposition, mot_a_deviner):
 			final.append('\x1b[31;1m' + char + '\x1b[0m')
 		elif state == 'not included' :
 			final.append('_')
-		
-	return(final)	
+
+	return''.join(final)
 
 
 def devine_un_mot(max_len, max_time, mot_a_deviner): 
 	for chances in range(max_len):
-		proposition = timeout_input(max_time, max_len)
+		proposition	 = timeout_input(max_time, max_len)
 		print("\r",'RESULTAT   : ' + etudie_proposition(proposition, mot_a_deviner))
 		if ''.join(proposition) == ''.join(mot_a_deviner) :
 			return True
@@ -227,7 +220,7 @@ def defaite() :
 ''')	
 
 def choix_nb_lettres() :
-	possibilités = [ 5 , 6 , 7 , 8 , 9 , 10 ]	
+	possibilités = dico.keys()	
 	max_len = False
 	while max_len not in possibilités :
 		with suppress(ValueError) :
@@ -297,8 +290,8 @@ if __name__ == '__main__':
 			else : 
 				max_time = choix_difficulte()
 				manche_gagnée = 0
-				max_len = 5
-				while manche_gagnée != 6 :		
+				max_len = min(dico.keys())
+				while manche_gagnée != len(dico.keys()) :		
 					mot_a_deviner = devine(max_len)
 					gagné = devine_un_mot(max_len, max_time, mot_a_deviner)
 					if gagné == True :			
